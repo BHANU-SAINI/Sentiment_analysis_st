@@ -147,7 +147,7 @@ def main():
 
                 headers = {
                     "User-Agent":
-                    "sentiment-analysis-app by u/YOUR_REDDIT_USERNAME"
+                    "sentiment-analysis-app by u/Mountain_Iron_2061"
                 }
 
                 url = (
