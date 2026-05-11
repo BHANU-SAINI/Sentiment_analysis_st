@@ -11,13 +11,16 @@ from nltk.corpus import stopwords
 from textblob import TextBlob
 from wordcloud import WordCloud
 
+
 # -----------------------------
 # Cache resources
 # -----------------------------
 @st.cache_resource
 def load_stopwords():
+
     nltk.download('stopwords')
     nltk.download('punkt')
+
     return stopwords.words('english')
 
 
@@ -52,9 +55,18 @@ def initialize_youtube():
 # -----------------------------
 # Preprocess and predict
 # -----------------------------
-def predict_sentiment_with_score(text, model, vectorizer, stop_words):
+def predict_sentiment_with_score(
+    text,
+    model,
+    vectorizer,
+    stop_words
+):
 
-    text_proc = re.sub('[^a-zA-Z]', ' ', text).lower().split()
+    text_proc = re.sub(
+        '[^a-zA-Z]',
+        ' ',
+        text
+    ).lower().split()
 
     text_proc = [
         word for word in text_proc
@@ -67,7 +79,9 @@ def predict_sentiment_with_score(text, model, vectorizer, stop_words):
 
     pred = model.predict(vect_text)[0]
 
-    sentiment_label = "Positive" if pred == 1 else "Negative"
+    sentiment_label = (
+        "Positive" if pred == 1 else "Negative"
+    )
 
     polarity = TextBlob(text).sentiment.polarity
 
@@ -89,7 +103,9 @@ def main():
 
     stop_words = load_stopwords()
 
-    model, vectorizer = load_model_and_vectorizer()
+    model, vectorizer = (
+        load_model_and_vectorizer()
+    )
 
     youtube = initialize_youtube()
 
@@ -115,11 +131,13 @@ def main():
 
         if st.button("Analyze"):
 
-            sentiment, polarity = predict_sentiment_with_score(
-                text_input,
-                model,
-                vectorizer,
-                stop_words
+            sentiment, polarity = (
+                predict_sentiment_with_score(
+                    text_input,
+                    model,
+                    vectorizer,
+                    stop_words
+                )
             )
 
             results.append({
@@ -128,9 +146,13 @@ def main():
                 "Polarity": polarity
             })
 
-            st.write(f"### Sentiment: {sentiment}")
+            st.write(
+                f"### Sentiment: {sentiment}"
+            )
 
-            st.write(f"### Polarity: {polarity:.2f}")
+            st.write(
+                f"### Polarity: {polarity:.2f}"
+            )
 
     # -----------------------------
     # 2️⃣ Reddit Posts Fetch
@@ -146,21 +168,38 @@ def main():
             try:
 
                 headers = {
-                    "User-Agent":
-                    "sentiment-analysis-app by u/Mountain_Iron_2061"
+                    "User-Agent": (
+                        "Mozilla/5.0 "
+                        "(Macintosh; Intel Mac OS X 10_15_7) "
+                        "AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) "
+                        "Chrome/124.0 Safari/537.36 "
+                        "sentiment-analysis-app "
+                        "by u/Mountain_Iron_2061"
+                    ),
+                    "Accept": "application/json",
+                    "Referer": "https://old.reddit.com"
                 }
 
                 url = (
-                    f"https://www.reddit.com/r/"
+                    f"https://old.reddit.com/r/"
                     f"{subreddit_name}/hot.json?limit=50"
                 )
 
                 response = requests.get(
                     url,
-                    headers=headers
+                    headers=headers,
+                    timeout=10
                 )
 
-                if response.status_code != 200:
+                if response.status_code == 403:
+
+                    st.error(
+                        "Reddit blocked the request (403). "
+                        "Try another subreddit or try again later."
+                    )
+
+                elif response.status_code != 200:
 
                     st.error(
                         f"Error: Received status code "
@@ -189,7 +228,8 @@ def main():
                             f"{title} {selftext}"
                         ).strip()
 
-                        posts.append(text_combined)
+                        if text_combined:
+                            posts.append(text_combined)
 
                     if not posts:
 
@@ -215,7 +255,8 @@ def main():
                             })
 
                             st.write(
-                                f"### Sentiment: {sentiment}"
+                                f"### Sentiment: "
+                                f"{sentiment}"
                             )
 
                             st.write(
@@ -227,7 +268,9 @@ def main():
 
                             st.write("---")
 
-                        st.session_state["results"] = results
+                        st.session_state[
+                            "results"
+                        ] = results
 
             except Exception as e:
 
@@ -250,11 +293,13 @@ def main():
 
                 comments = []
 
-                request = youtube.commentThreads().list(
-                    part="snippet",
-                    videoId=video_id,
-                    maxResults=100,
-                    textFormat="plainText"
+                request = (
+                    youtube.commentThreads().list(
+                        part="snippet",
+                        videoId=video_id,
+                        maxResults=100,
+                        textFormat="plainText"
+                    )
                 )
 
                 while request:
@@ -276,7 +321,8 @@ def main():
                         comments.append(comment)
 
                     request = (
-                        youtube.commentThreads().list_next(
+                        youtube.commentThreads()
+                        .list_next(
                             request,
                             response
                         )
@@ -306,7 +352,8 @@ def main():
                         })
 
                         st.write(
-                            f"### Sentiment: {sentiment}"
+                            f"### Sentiment: "
+                            f"{sentiment}"
                         )
 
                         st.write(
@@ -318,7 +365,9 @@ def main():
 
                         st.write("---")
 
-                    st.session_state["results"] = results
+                    st.session_state[
+                        "results"
+                    ] = results
 
             except Exception as e:
 
@@ -366,7 +415,9 @@ def main():
                 y="Count",
                 color="Sentiment",
                 text="Count",
-                title="Overall Sentiment Distribution"
+                title=(
+                    "Overall Sentiment Distribution"
+                )
             )
 
             st.plotly_chart(
@@ -385,7 +436,9 @@ def main():
                 sentiment_counts,
                 names="Sentiment",
                 values="Count",
-                title="Sentiment Percentage Split"
+                title=(
+                    "Sentiment Percentage Split"
+                )
             )
 
             st.plotly_chart(
